@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Kesehatan</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #chat-container {
+      width: 400px;
+      height: 520px;
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    #chat {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 5px 0;
+      padding: 8px 12px;
+      border-radius: 15px;
+      max-width: 75%;
+      white-space: pre-line;
+    }
+
+    .user {
+      background: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: #e0e0e0;
+      color: black;
+      align-self: flex-start;
+    }
+
+    #input-container {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+
+    #pesan {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-container">
+  <div id="chat">
+    <div class="message bot">
+Halo! 👋  Ada perlu apa..
+    </div>
+  </div>
+
+  <div id="input-container">
+    <input type="text" id="pesan" placeholder="Tulis pesan...">
+    <button onclick="kirimPesan()">Kirim</button>
+  </div>
+</div>
+
+<script>
+let step = "";
+let tinggi = 0;
+
+function kirimPesan() {
+  const input = document.getElementById("pesan");
+  const chat = document.getElementById("chat");
+  const teksAsli = input.value.trim();
+  const teks = teksAsli.toLowerCase();
+
+  if (teks === "") return;
+
+  // Pesan user
+  const userMsg = document.createElement("div");
+  userMsg.className = "message user";
+  userMsg.textContent = teksAsli;
+  chat.appendChild(userMsg);
+
+  // Pesan bot
+  const botMsg = document.createElement("div");
+  botMsg.className = "message bot";
+
+  // === MENU ===
+  if (teks === "halo dokter excel") {
+    botMsg.textContent =
+       "Halo! Ketik cek tekanan darah atau sakit ringan dan cek berat badan ideal";
+  }
+
+  // === CEK BERAT BADAN IDEAL ===
+  else if (teks === "cek berat badan ideal") {
+    step = "tinggi";
+    botMsg.textContent = "Masukkan tinggi badan (cm)";
+  }
+
+  else if (step === "tinggi" && !isNaN(teks)) {
+    tinggi = parseFloat(teks) / 100;
+    step = "berat";
+    botMsg.textContent = "Masukkan berat badan (kg)";
+  }
+
+  else if (step === "berat" && !isNaN(teks)) {
+    const berat = parseFloat(teks);
+    const bmi = berat / (tinggi * tinggi);
+    const beratIdeal = 22 * (tinggi * tinggi);
+    step = "";
+
+    let kategori = "";
+    let saran = "";
+
+    if (bmi < 18.5) {
+      kategori = "Kurus";
+      const naik = beratIdeal - berat;
+      saran =
+        "Kamu disarankan menaikkan berat sekitar " +
+        naik.toFixed(1) +
+        " kg secara bertahap.";
+    }
+    else if (bmi < 25) {
+      kategori = "Ideal";
+      saran = "Berat badan kamu sudah ideal. Pertahankan 👍";
+    }
+    else {
+      kategori = "Berlebih";
+      const turun = berat - beratIdeal;
+      saran =
+        "Kamu disarankan menurunkan berat sekitar " +
+        turun.toFixed(1) +
+        " kg secara bertahap.";
+    }
+
+    botMsg.textContent =
+      "BMI: " + bmi.toFixed(1) + "\n" +
+      "Kategori: " + kategori + "\n" +
+      saran + "\n" +
+      "Catatan: Perubahan berat badan sebaiknya perlahan dan sehat.";
+  }
+
+  // === CEK TEKANAN DARAH ===
+  else if (teks === "cek tekanan darah") {
+    botMsg.textContent = "Masukkan umur kamu";
+  }
+
+  else if (!isNaN(teks) && step === "") {
+    const umur = parseInt(teks);
+
+    if (umur >= 0 && umur <= 1)
+      botMsg.textContent = "Bayi: 60–90 / 20–60 mmHg";
+    else if (umur >= 3 && umur <= 11)
+      botMsg.textContent = "Anak-anak: 90–110 / 60–75 mmHg";
+    else if (umur >= 11 && umur <= 18)
+      botMsg.textContent = "Remaja: 90–120 / 60–80 mmHg";
+    else if (umur >= 19 && umur <= 40)
+      botMsg.textContent = "Dewasa muda: 95–135 / 60–85 mmHg";
+    else if (umur > 40)
+      botMsg.textContent = "Dewasa/Lansia: 110–150 / 70–90 mmHg";
+    else
+      botMsg.textContent = "Umur tidak valid";
+  }
+
+  // === SAKIT RINGAN ===
+  else if (teks === "sakit ringan") {
+    botMsg.textContent =
+      "Sebutkan gejala anda";
+  }
+
+  else if (teks === "batuk") {
+    botMsg.textContent =
+      "Saran batuk:\n- Minum air hangat\n- Istirahat cukup\n- Hindari asap rokok";
+  }
+
+  else if (teks === "pilek") {
+    botMsg.textContent =
+      "Saran pilek:\n- Minum air hangat\n- Istirahat\n- Hirup uap air hangat";
+  }
+
+  else if (teks === "sakit kepala") {
+    botMsg.textContent =
+      "Saran sakit kepala:\n- Istirahat\n- Kurangi layar\n- Minum air putih";
+  }
+
+  else if (teks === "sakit tenggorokan") {
+    botMsg.textContent =
+      "Saran sakit tenggorokan:\n- Air hangat\n- Kumur air garam\n- Hindari minuman dingin";
+  }
+
+  else {
+    botMsg.textContent = "Pesan tidak dikenali.";
+  }
+
+  chat.appendChild(botMsg);
+  input.value = "";
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
+
+</body>
+</html>
