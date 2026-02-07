@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Game Pesawat</title>
+
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: black;
+  font-family: Arial, sans-serif;
+}
+
+#game {
+  width: 320px;
+  height: 520px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 2px solid #38bdf8;
+
+  /* BACKGROUND GAMBAR */
+  background: url("IMG-20250630-WA0064.jpg") no-repeat center / cover;
+  touch-action: none;
+}
+
+#hud {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  font-size: 14px;
+  z-index: 10;
+}
+
+/* PESAWAT */
+#player {
+  position: absolute;
+  bottom: 10px;
+  left: 140px;
+  font-size: 32px;
+}
+
+/* PELURU */
+.bullet {
+  position: absolute;
+  width: 4px;
+  height: 10px;
+  background: yellow;
+  border-radius: 2px;
+}
+
+/* MUSUH */
+.enemy {
+  position: absolute;
+  font-size: 28px;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="hud">
+    <div id="score">Skor: 0</div>
+    <div id="life">❤️❤️❤️</div>
+  </div>
+
+  <div id="player">✈️</div>
+</div>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const lifeText = document.getElementById("life");
+
+let playerX = 140;
+let score = 0;
+let life = 3;
+
+/* GERAK SENTUH */
+game.addEventListener("touchmove", e => {
+  const touch = e.touches[0];
+  const rect = game.getBoundingClientRect();
+
+  playerX = touch.clientX - rect.left - 16;
+  if (playerX < 0) playerX = 0;
+  if (playerX > 280) playerX = 280;
+
+  player.style.left = playerX + "px";
+});
+
+/* TEMBAK OTOMATIS */
+setInterval(() => {
+  if (life > 0) shoot();
+}, 400);
+
+function shoot() {
+  const bullet = document.createElement("div");
+  bullet.className = "bullet";
+  bullet.style.left = playerX + 18 + "px";
+  bullet.style.bottom = "40px";
+  game.appendChild(bullet);
+
+  const move = setInterval(() => {
+    bullet.style.bottom =
+      parseInt(bullet.style.bottom) + 10 + "px";
+
+    document.querySelectorAll(".enemy").forEach(enemy => {
+      if (hit(bullet, enemy)) {
+        bullet.remove();
+        enemy.remove();
+        score++;
+        scoreText.textContent = "Skor: " + score;
+        clearInterval(move);
+      }
+    });
+
+    if (parseInt(bullet.style.bottom) > 520) {
+      bullet.remove();
+      clearInterval(move);
+    }
+  }, 30);
+}
+
+/* MUSUH */
+function spawnEnemy() {
+  if (life <= 0) return;
+
+  const enemy = document.createElement("div");
+  enemy.className = "enemy";
+  enemy.textContent = "🛸";
+  enemy.style.left = Math.random() * 280 + "px";
+  enemy.style.top = "0px";
+  game.appendChild(enemy);
+
+  const move = setInterval(() => {
+    enemy.style.top = enemy.offsetTop + 3 + "px";
+
+    if (hit(enemy, player)) {
+      enemy.remove();
+      clearInterval(move);
+      life--;
+      updateLife();
+
+      if (life <= 0) {
+        setTimeout(() => {
+          alert("GAME OVER\nSkor: " + score);
+          location.reload();
+        }, 100);
+      }
+    }
+
+    if (enemy.offsetTop > 520) {
+      enemy.remove();
+      clearInterval(move);
+    }
+  }, 30);
+}
+
+setInterval(spawnEnemy, 1200);
+
+/* UPDATE NYAWA */
+function updateLife() {
+  lifeText.textContent = "❤️".repeat(life);
+}
+
+/* TABRAKAN */
+function hit(a, b) {
+  const r1 = a.getBoundingClientRect();
+  const r2 = b.getBoundingClientRect();
+  return !(
+    r1.top > r2.bottom ||
+    r1.bottom < r2.top ||
+    r1.right < r2.left ||
+    r1.left > r2.right
+  );
+}
+</script>
+
+</body>
+</html>
