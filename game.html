@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Game Pesawat</title>
+<title>Game Pesawat Tembak</title>
 
 <style>
 body {
@@ -11,119 +11,138 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: black;
   font-family: Arial, sans-serif;
+  background: url("bg-luar.jpg") no-repeat center / cover;
 }
 
 #game {
-  width: 320px;
-  height: 520px;
+  width: 400px;
+  height: 600px;
   position: relative;
   overflow: hidden;
-  border-radius: 12px;
-  border: 2px solid #38bdf8;
-
-  /* BACKGROUND GAMBAR */
-  background: url("IMG-20250630-WA0064.jpg") no-repeat center / cover;
-  touch-action: none;
+  background: url("IMG-20250630-WA0064.jpg") repeat-y;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  animation: bgMove 10s linear infinite;
 }
 
-#hud {
-  position: absolute;
-  top: 6px;
-  left: 8px;
-  right: 8px;
-  display: flex;
-  justify-content: space-between;
-  color: white;
-  font-size: 14px;
-  z-index: 10;
+@keyframes bgMove {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
 }
 
-/* PESAWAT */
 #player {
+  width: 50px;
+  height: 70px;
+  background: linear-gradient(#00eaff, #0044ff);
+  clip-path: polygon(
+    50% 0%, 90% 25%, 70% 25%,
+    70% 100%, 30% 100%, 30% 25%, 10% 25%
+  );
   position: absolute;
-  bottom: 10px;
-  left: 140px;
-  font-size: 32px;
+  bottom: 20px;
+  left: 175px;
 }
 
-/* PELURU */
 .bullet {
-  position: absolute;
-  width: 4px;
-  height: 10px;
+  width: 6px;
+  height: 12px;
   background: yellow;
-  border-radius: 2px;
+  position: absolute;
+  border-radius: 4px;
 }
 
-/* MUSUH */
 .enemy {
+  width: 40px;
+  height: 40px;
+  background: red;
   position: absolute;
-  font-size: 28px;
+  border-radius: 8px;
+}
+
+#info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+#controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+button {
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin-left: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:hover {
+  background: rgba(255,255,255,0.3);
 }
 </style>
 </head>
+
 <body>
 
 <div id="game">
-  <div id="hud">
-    <div id="score">Skor: 0</div>
-    <div id="life">❤️❤️❤️</div>
+  <div id="info">❤️ Nyawa: <span id="life">3</span></div>
+
+  <div id="controls">
+    <button id="pauseBtn">⏸ Pause</button>
+    <button id="muteBtn">🔊 Mute</button>
   </div>
 
-  <div id="player">✈️</div>
+  <div id="player"></div>
 </div>
+
+<audio id="music" autoplay loop>
+  <source src="Aku_Jeje_-_Lihat_Kebunku_(Taman_Bunga)_#lyricvideo_128k.mp3" type="audio/mpeg">
+</audio>
 
 <script>
 const game = document.getElementById("game");
 const player = document.getElementById("player");
-const scoreText = document.getElementById("score");
 const lifeText = document.getElementById("life");
+const pauseBtn = document.getElementById("pauseBtn");
+const muteBtn = document.getElementById("muteBtn");
+const music = document.getElementById("music");
 
-let playerX = 140;
-let score = 0;
+let left = 175;
 let life = 3;
+let paused = false;
+let enemyInterval;
 
-/* GERAK SENTUH */
-game.addEventListener("touchmove", e => {
-  const touch = e.touches[0];
-  const rect = game.getBoundingClientRect();
+/* GERAK */
+document.addEventListener("keydown", e => {
+  if (paused) return;
 
-  playerX = touch.clientX - rect.left - 16;
-  if (playerX < 0) playerX = 0;
-  if (playerX > 280) playerX = 280;
+  if (e.key === "ArrowLeft" && left > 0) left -= 20;
+  if (e.key === "ArrowRight" && left < 350) left += 20;
+  player.style.left = left + "px";
 
-  player.style.left = playerX + "px";
+  if (e.key === " ") shoot();
 });
 
-/* TEMBAK OTOMATIS */
-setInterval(() => {
-  if (life > 0) shoot();
-}, 400);
-
+/* TEMBAK */
 function shoot() {
   const bullet = document.createElement("div");
   bullet.className = "bullet";
-  bullet.style.left = playerX + 18 + "px";
-  bullet.style.bottom = "40px";
+  bullet.style.left = left + 22 + "px";
+  bullet.style.bottom = "90px";
   game.appendChild(bullet);
 
   const move = setInterval(() => {
-    bullet.style.bottom =
-      parseInt(bullet.style.bottom) + 10 + "px";
-
-    document.querySelectorAll(".enemy").forEach(enemy => {
-      if (hit(bullet, enemy)) {
-        bullet.remove();
-        enemy.remove();
-        score++;
-        scoreText.textContent = "Skor: " + score;
-        clearInterval(move);
-      }
-    });
-
-    if (parseInt(bullet.style.bottom) > 520) {
+    if (paused) return;
+    bullet.style.bottom = parseInt(bullet.style.bottom) + 10 + "px";
+    if (parseInt(bullet.style.bottom) > 600) {
       bullet.remove();
       clearInterval(move);
     }
@@ -132,57 +151,44 @@ function shoot() {
 
 /* MUSUH */
 function spawnEnemy() {
-  if (life <= 0) return;
+  if (paused) return;
 
   const enemy = document.createElement("div");
   enemy.className = "enemy";
-  enemy.textContent = "🛸";
-  enemy.style.left = Math.random() * 280 + "px";
+  enemy.style.left = Math.random() * 360 + "px";
   enemy.style.top = "0px";
   game.appendChild(enemy);
 
   const move = setInterval(() => {
-    enemy.style.top = enemy.offsetTop + 3 + "px";
+    if (paused) return;
 
-    if (hit(enemy, player)) {
+    enemy.style.top = parseInt(enemy.style.top) + 3 + "px";
+    if (parseInt(enemy.style.top) > 560) {
       enemy.remove();
       clearInterval(move);
       life--;
-      updateLife();
-
-      if (life <= 0) {
-        setTimeout(() => {
-          alert("GAME OVER\nSkor: " + score);
-          location.reload();
-        }, 100);
+      lifeText.textContent = life;
+      if (life === 0) {
+        alert("GAME OVER");
+        location.reload();
       }
-    }
-
-    if (enemy.offsetTop > 520) {
-      enemy.remove();
-      clearInterval(move);
     }
   }, 30);
 }
 
-setInterval(spawnEnemy, 1200);
+enemyInterval = setInterval(spawnEnemy, 1500);
 
-/* UPDATE NYAWA */
-function updateLife() {
-  lifeText.textContent = "❤️".repeat(life);
-}
+/* PAUSE */
+pauseBtn.onclick = () => {
+  paused = !paused;
+  pauseBtn.textContent = paused ? "▶ Lanjut" : "⏸ Pause";
+};
 
-/* TABRAKAN */
-function hit(a, b) {
-  const r1 = a.getBoundingClientRect();
-  const r2 = b.getBoundingClientRect();
-  return !(
-    r1.top > r2.bottom ||
-    r1.bottom < r2.top ||
-    r1.right < r2.left ||
-    r1.left > r2.right
-  );
-}
+/* MUTE */
+muteBtn.onclick = () => {
+  music.muted = !music.muted;
+  muteBtn.textContent = music.muted ? "🔇 Mute" : "🔊 Sound";
+};
 </script>
 
 </body>
