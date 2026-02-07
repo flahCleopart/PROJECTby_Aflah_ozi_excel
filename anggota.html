@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Kelompok Medis</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: linear-gradient(135deg, #e6f7f4, #f0f9ff);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* WRAPPER */
+.wrapper {
+  max-width: 900px;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+/* HEADER TENGAH */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header .title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.header .subtitle {
+  font-size: 14px;
+  color: #4b5563;
+  margin-top: 6px;
+}
+
+/* MEMBER GRID */
+.members {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+/* CARD */
+.card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(15,118,110,0.15);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 35px rgba(15,118,110,0.25);
+}
+
+/* BINGKAI FOTO ELEGAN */
+.photo-frame {
+  background: linear-gradient(145deg, #d1fae5, #ecfeff);
+  padding: 6px;
+  border-radius: 18px;
+  margin-bottom: 14px;
+}
+
+.photo-frame img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+}
+
+/* TEXT */
+.name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.role {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- JUDUL TENGAH -->
+  <div class="header">
+    <div class="title">PROJECT BY KELOMPOK 1 MEDIS</div>
+    <div class="subtitle">Sehat • Peduli • Profesional</div>
+  </div>
+
+  <!-- ANGGOTA -->
+  <div class="members">
+    <div class="card">
+      <div class="photo-frame">
+        <img src="IMG_20260207_230148.jpg" alt="">
+      </div>
+      <div class="name">Aflah</div>
+      <div class="role">Absen 22</div>
+    </div>
+
+    <div class="card">
+      <div class="photo-frame">
+        <img src="IMG_20260207_230223.jpg
+" alt="">
+      </div>
+      <div class="name">Ozi</div>
+      <div class="role">Absen 4</div>
+    </div>
+
+    <div class="card">
+      <div class="photo-frame">
+        <img src="IMG_20260207_230201.jpg
+" alt="">
+      </div>
+      <div class="name">Excel</div>
+      <div class="role">Absen 14</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
