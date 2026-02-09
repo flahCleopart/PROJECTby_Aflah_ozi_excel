@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sky Strike - By Aflah</title>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column; /* Mengatur susunan vertikal */
+    justify-content: center;
+    align-items: center;
+    background: #0a0a0a;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  /* Desain Judul */
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+    animation: fadeIn 2s ease-in;
+  }
+
+  .header h1 {
+    color: #38bdf8;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    font-size: 28px;
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+  }
+
+  .header .author {
+    color: #fbbf24;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin-top: 5px;
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.4);
+  }
+
+  #game {
+    width: 320px;
+    height: 520px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 3px solid #38bdf8;
+    background: #000 url("bg.jpg") no-repeat center / cover;
+    touch-action: none;
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+  }
+
+  #hud {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  #controls {
+    pointer-events: auto;
+  }
+
+  #controls button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 4px 8px;
+    margin-left: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* PESAWAT */
+  #player {
+    position: absolute;
+    bottom: 20px;
+    left: 140px;
+    font-size: 32px;
+    transition: left 0.1s ease-out;
+    filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.8));
+  }
+
+  /* PELURU */
+  .bullet {
+    position: absolute;
+    width: 4px;
+    height: 12px;
+    background: #fbbf24;
+    border-radius: 2px;
+    box-shadow: 0 0 8px #fbbf24;
+  }
+
+  /* MUSUH */
+  .enemy {
+    position: absolute;
+    font-size: 28px;
+    filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5));
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>SKY STRIKE</h1>
+    <div class="author">BY AFLAH</div>
+  </div>
+
+  <div id="game">
+    <div id="hud">
+      <div id="score">Skor: 0</div>
+      <div id="controls">
+        <button id="pauseBtn">⏸</button>
+        <button id="muteBtn">🔊</button>
+      </div>
+      <div id="life">❤️❤️❤️</div>
+    </div>
+
+    <div id="player">✈️</div>
+
+    <audio id="bgm" loop>
+      <source src="lihatkebun.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const lifeText = document.getElementById("life");
+const bgm = document.getElementById("bgm");
+const pauseBtn = document.getElementById("pauseBtn");
+const muteBtn = document.getElementById("muteBtn");
+
+let playerX = 140;
+let score = 0;
+let life = 3;
+let paused = false;
+let musicStarted = false;
+
+/* START MUSIK */
+game.addEventListener("pointerdown", startMusic);
+
+function startMusic() {
+  if (!musicStarted) {
+    bgm.play().catch(() => {}); // Catch error if audio fails
+    musicStarted = true;
+  }
+}
+
+/* GERAK PESAWAT (Mendukung Mouse & Touch) */
+game.addEventListener("pointermove", e => {
+  if (paused || life <= 0) return;
+  const rect = game.getBoundingClientRect();
+  
+  // Hitung posisi tengah pesawat
+  playerX = (e.clientX || e.touches[0].clientX) - rect.left - 16;
+  
+  // Batas area gerak
+  if (playerX < 0) playerX = 0;
+  if (playerX > 288) playerX = 288;
+
+  player.style.left = playerX + "px";
+});
+
+/* TEMBAK OTOMATIS */
+setInterval(() => {
+  if (!paused && life > 0) shoot();
+}, 400);
+
+function shoot() {
+  const bullet = document.createElement("div");
+  bullet.className = "bullet";
+  bullet.style.left = playerX + 14 + "px";
+  bullet.style.bottom = "50px";
+  game.appendChild(bullet);
+
+  const move = setInterval(() => {
+    if (paused) return;
+
+    let bBottom = parseInt(bullet.style.bottom);
+    bullet.style.bottom = bBottom + 10 + "px";
+
+    document.querySelectorAll(".enemy").forEach(enemy => {
+      if (hit(bullet, enemy)) {
+        bullet.remove();
+        enemy.remove();
+        score += 10;
+        scoreText.textContent = "Skor: " + score;
+        clearInterval(move);
+      }
+    });
+
+    if (bBottom > 520) {
+      bullet.remove();
+      clearInterval(move);
+    }
+  }, 30);
+}
+
+/* SPAWN MUSUH */
+function spawnEnemy() {
+  if (paused || life <= 0) return;
+
+  const enemy = document.createElement("div");
+  enemy.className = "enemy";
+  enemy.textContent = "🛸";
+  enemy.style.left = Math.random() * 280 + "px";
+  enemy.style.top = "-30px";
+  game.appendChild(enemy);
+
+  const move = setInterval(() => {
+    if (paused) return;
+
+    enemy.style.top = enemy.offsetTop + 4 + "px";
+
+    if (hit(enemy, player)) {
+      enemy.remove();
+      clearInterval(move);
+      life--;
+      updateLife();
+
+      if (life <= 0) {
+        bgm.pause();
+        setTimeout(() => {
+          alert("GAME OVER\nSkor Akhir: " + score);
+          location.reload();
+        }, 100);
+      }
+    }
+
+    if (enemy.offsetTop > 520) {
+      enemy.remove();
+      clearInterval(move);
+    }
+  }, 30);
+}
+setInterval(spawnEnemy, 1200);
+
+/* KONTROL */
+pauseBtn.onclick = (e) => {
+  e.stopPropagation();
+  paused = !paused;
+  pauseBtn.textContent = paused ? "▶" : "⏸";
+};
+
+muteBtn.onclick = (e) => {
+  e.stopPropagation();
+  bgm.muted = !bgm.muted;
+  muteBtn.textContent = bgm.muted ? "🔇" : "🔊";
+};
+
+function updateLife() {
+  lifeText.textContent = "❤️".repeat(life);
+}
+
+/* LOGIKA TABRAKAN */
+function hit(a, b) {
+  const r1 = a.getBoundingClientRect();
+  const r2 = b.getBoundingClientRect();
+  return !(
+    r1.top > r2.bottom ||
+    r1.bottom < r2.top ||
+    r1.right < r2.left ||
+    r1.left > r2.right
+  );
+}
+</script>
+
+</body>
+</html>
